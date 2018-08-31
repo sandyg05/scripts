@@ -21,9 +21,9 @@ headers = [
     "Accept-language: en-US,en"
 ]
 
-ip = args.host
+ip_address = args.host
 
-def setupSocket(ip):
+def connect(ip_address):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(4)
@@ -40,4 +40,4 @@ def setupSocket(ip):
         print(e)
 
 
-setupSocket(ip)
+connect(ip)
