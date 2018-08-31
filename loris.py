@@ -14,7 +14,7 @@ if len(sys.argv) <= 1:
     parser.print_help()
     sys.exit(1)
 
-print(args.host)
+print("Connecting to:", args.host, "on port:", args.port)
 
 headers = [
     "User-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
@@ -27,7 +27,7 @@ def connect(ip_address):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(4)
-        sock.connect((ip, 80))
+        sock.connect((ip_address, 80))
         sock.send("GET /?{} HTTP/1.1\r\n".format(random.randint(0, 1337)).encode("utf-8"))
 
         for header in headers:
@@ -37,7 +37,8 @@ def connect(ip_address):
 
         return sock
     except Exception as e:
-        print(e)
+        print("An error occured while connecting to host", args.host + ":" + str(args.port)
+        + "\n" , e)
 
 
-connect(ip)
+connect(ip_address)
