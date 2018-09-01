@@ -72,7 +72,7 @@ def main():
 
         for s in sockets:
             try:
-                s.send("X-a: {}\r\n".format(random.randint(1, 2000)).encode("utf-8"))
+                s.send("X-a: {}\r\n".format(random.randint(1, 5000)).encode("utf-8"))
             except socket.error:
                 logging.debug("Socket {} is timed out.".format(s.getsockname()))
                 sockets.remove(s)
